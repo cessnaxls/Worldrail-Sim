@@ -1,8 +1,12 @@
-# Asset licensing
+# Third-party asset policy
 
-- WorldRail generated geometry in this prototype: may be used/modified freely; intended for CC0-style redistribution.
-- Kenney Train Kit: Creative Commons CC0. Source: https://kenney.nl/assets/train-kit
-- Poly Haven assets: Creative Commons CC0. Source/license: https://polyhaven.com/license
-- OpenStreetMap map data: © OpenStreetMap contributors.
+WorldRail Third-Party-Only does not generate substitute 3D scenery geometry.
 
-The Kenney/Poly Haven binary downloads are not mirrored in this source archive. This avoids silently repackaging third-party binaries without a verified local copy. The app is structured so vetted CC0 assets can be added to `assets/` and included by the exporter.
+Recommended asset sources:
+- Kenney Train Kit — CC0 1.0. https://kenney.nl/assets/train-kit
+- Poly Haven — CC0. https://polyhaven.com/license
+- ambientCG — CC0. https://ambientcg.com
+
+The browser imports source asset ZIPs supplied by the user and converts their OBJ mesh coordinates into BVE CSV mesh syntax for Hmmsim. The mesh itself remains derived from the third-party artist asset. Missing categories are omitted rather than replaced with boxes, cylinders, or procedural meshes.
+
+Do not import packs whose license does not permit your intended use or redistribution.
