@@ -25,36 +25,55 @@ $('export').onclick=async()=>{
  const z=new JSZip(), railway=z.folder('Railway'), routeDir=railway.folder('Route'), obj=railway.folder('Object/WorldRail'), snd=railway.folder('Sound/WorldRail'), tr=z.folder('Train/CustomTrain');
  const safe=s=>String(s||'WorldRail').replace(/[^A-Za-z0-9_-]/g,'_');
  const routeName=safe($('trainName').value)+'_Route';
- function normPath(p){return p.replace(/\\/g,'/').toLowerCase()}
- let routeCsv='With Route\n.Comment WorldRail generated BVE2/BVE4 route for Hmmsim Legacy\n.Gauge 1435\n.DeveloperID WorldRail\nWith Train\n.Folder CustomTrain\nWith Structure\n.Rail(0) WorldRail\\rail.csv\n.FreeObj(0) WorldRail\\platform.csv\n.FreeObj(1) WorldRail\\station_canopy.csv\n.FreeObj(2) WorldRail\\building.csv\nWith Track\n';
- obj.file('rail.csv',makeObject('rail',1.435,.12,.15,'95,95,100,255'));
- obj.file('platform.csv',makeObject('platform',platLen(),.35,4,'145,145,145,255'));
- obj.file('station_canopy.csv',makeObject('canopy',Math.min(platLen(),40),.25,4.5,'90,90,95,255'));
- obj.file('building.csv',makeObject('building',12,12,10,'125,120,110,255'));
- let total=0, last=route[0];
- routeCsv+='0,.RailType 0;0,.Limit '+Math.round(+$('maxSpeed').value)+'\n';
- for(let i=1;i<route.length;i++){
-   const p=route[i], d=map.distance(last,p); total+=d;
-   const pos=Math.max(0,Math.round(total/25)*25);
-   const prev=route[Math.max(0,i-1)], next=route[Math.min(route.length-1,i+1)];
-   const b1=map.distance(prev,next)>1?bearing(prev,next):0;
-   routeCsv+=pos+',.Turn '+((b1-(i>1?bearing(route[i-2],p):b1)+540)%360-180).toFixed(4)+'\n';
-   last=p;
- }
+ const cars=Math.max(1,Math.min(12,+$('cars').value||1));
+ const carLength=Math.max(8,Math.min(30,+$('carLength').value||20));
+ const width=Math.max(2,Math.min(4,+$('width').value||2.8));
+ const accel=Math.max(.2,Math.min(5,+$('accel').value||1));
+ const brake=Math.max(.2,Math.min(5,+$('brake').value||1));
+ const vmax=Math.max(20,Math.min(250,+$('maxSpeed').value||100));
+ // Conservative BVE2/BVE4-compatible route. Avoid OpenBVE-only macros / animated objects.
+ let routeCsv='With Options\n.UnitOfLength 1\n.UnitOfSpeed 1\n.BlockLength 25\nWith Route\n.Gauge 1435\n.DeveloperID WorldRail\nWith Train\n.Folder CustomTrain\nWith Structure\n.Rail(0).Load WorldRail\\rail.csv\n.FreeObj(0).Load WorldRail\\platform.csv\n.FreeObj(1).Load WorldRail\\station_canopy.csv\n.FreeObj(2).Load WorldRail\\building.csv\nWith Track\n';
+ // Rail structures are one BVE block (25m) long. Platforms run along +Z.
+ obj.file('rail.csv',makeObject('rail',1.6,.16,25,'95,95,100,255'));
+ obj.file('platform.csv',makeObject('platform',4,.35,platLen(),'145,145,145,255'));
+ obj.file('station_canopy.csv',makeObject('canopy',4.5,3.2,Math.min(platLen(),40),'90,90,95,255'));
+ obj.file('building.csv',makeObject('building',12,10,12,'125,120,110,255'));
+ let total=0; for(let i=1;i<route.length;i++) total+=map.distance(route[i-1],route[i]);
+ total=Math.max(500,Math.round(total/25)*25);
+ routeCsv+='0,.RailType 0;0,.Limit '+Math.round(vmax)+'\n';
+ // Place stations by their nearest cumulative distance, but keep them away from route boundaries.
+ const stationPositions=[];
  stations.forEach((s,idx)=>{
    let best=0,bd=1e20,acc=0;
    for(let i=1;i<route.length;i++){const seg=map.distance(route[i-1],route[i]),dd=map.distance(s,route[i]);if(dd<bd){bd=dd;best=acc+seg}acc+=seg}
-   const pos=Math.max(0,Math.round(best/25)*25), name='Station_'+String(idx+1).padStart(2,'0');
-   routeCsv+=pos+',.Sta '+name+';15;0;0;0;0;0;0;0;0,.FreeObj 0;0;0;0,.FreeObj 0;1;0;0\n';
+   let pos=Math.max(100,Math.min(total-100,Math.round(best/25)*25));
+   stationPositions.push({pos,name:safe(s.name||('Station_'+(idx+1)))})
  });
+ stationPositions.sort((a,b)=>a.pos-b.pos);
+ // De-duplicate stops that land in the same BVE block.
+ let lastPos=-999;
+ stationPositions.forEach((st,idx)=>{
+   if(st.pos-lastPos<50) st.pos=Math.min(total-100,lastPos+50);
+   lastPos=st.pos;
+   routeCsv+=`${st.pos},.Sta ${st.name};;;0;-1;0;0;;15;100;;0,.Stop -1;5;5;${cars},.FreeObj 0;0;3;0;0;0;0,.FreeObj 0;1;3;0;0;0;0\n`;
+ });
+ routeCsv+=`${total},.Buffer\n`;
  routeDir.file(routeName+'.csv',routeCsv);
- const td=`OPENBVE\n${+$('cars').value}\n# WorldRail custom train\n# Performance values\n${(+$('accel')).toFixed(2)}\n${(+$('brake')).toFixed(2)}\n${Math.round(+$('maxSpeed').value)}\n`;
+ // Valid BVE2-format train.dat. The previous exporter wrote raw values without section headers,
+ // which could make native mobile parsers fail hard.
+ const powerNotches=4, brakeNotches=8;
+ const a0=(accel*3.6).toFixed(3), a1=(accel*3.6).toFixed(3);
+ const motorCars=Math.max(1,Math.ceil(cars/2)), trailerCars=cars-motorCars;
+ const td=`BVE2000000\n#ACCELERATION\n${a0},${a1},25,45,1.2\n${a0},${a1},35,60,1.3\n${a0},${a1},45,80,1.5\n${a0},${a1},55,${Math.max(70,Math.round(vmax))},1.7\n#PERFORMANCE\n${(brake*3.6).toFixed(3)}\n0.30\n0\n0.0025\n1.1\n#DELAY\n0.2\n0.2\n0.2\n0.2\n#MOVE\n500\n500\n500\n500\n300\n200\n#BRAKE\n1\n2\n10\n#PRESSURE\n440\n480\n690\n780\n490\n#HANDLE\n1\n${powerNotches}\n${brakeNotches}\n0\n#CAB\n0\n2600\n-1500\n0\n#CAR\n40\n${motorCars}\n36\n${trailerCars}\n${carLength}\n1\n${width}\n3.8\n1.6\n${(width*3.8*.65).toFixed(2)}\n${(width*3.8*.20).toFixed(2)}\n#DEVICE\n-1\n0\n0\n0\n0\n0\n0\n0\n`;
  tr.file('train.dat',td);
- tr.file('extensions.cfg',Array.from({length:+$('cars').value},(_,i)=>`[Car${i}]\nObject = car.csv\nLength = ${+$('carLength').value}\n`).join('\n'));
- tr.file('car.csv',makeObject('custom train car',+$('width').value,3.8,+$('carLength').value,'35,105,180,255'));
- tr.file('README.txt',`Custom train: ${$('trainName').value}\nType: ${$('trainType').value}\nCars: ${$('cars').value}\nTrain length: ${trainLen()} m\nGenerated platform length: ${platLen()} m\n`);
- snd.file('README.txt','WorldRail sound slot. Add redistributable BVE WAV assets here.');
- z.file('WorldRail_README.txt','HMMSIM LEGACY ADD-ON\n\nKeep this ZIP compressed. On iPad, save/move the ZIP into the Hmmsim Legacy folder shown in the Files app, then fully close and reopen Hmmsim Legacy.\n\nThe ZIP root intentionally begins with Railway/ and Train/ for native BVE add-on discovery.\n');
+ // Keep the exterior deliberately simple: one valid static CSV object per car.
+ tr.file('extensions.cfg',Array.from({length:cars},(_,i)=>`[Car${i}]\nObject = car.csv\nLength = ${carLength}\nAxles = ${(-carLength*.35).toFixed(2)}, ${(carLength*.35).toFixed(2)}\nReversed = false\n`).join('\n'));
+ tr.file('car.csv',makeObject('custom train car',width,3.8,carLength,'35,105,180,255'));
+ // Minimal panel2 uses no external images, reducing missing-file failure points.
+ tr.file('panel2.cfg','[This]\nResolution = 1024\nLeft = 0\nRight = 1024\nTop = 0\nBottom = 768\nCenter = 512,384\nOrigin = 512,384\n\n[DigitalGauge]\nSubject = kmph\nLocation = 512,650\nRadius = 80\nColor = #FFFFFF\nInitialAngle = -120\nLastAngle = 120\nMinimum = 0\nMaximum = '+Math.round(vmax)+'\n');
+ tr.file('README.txt',`Custom train: ${$('trainName').value}\nType: ${$('trainType').value}\nCars: ${cars}\nTrain length: ${trainLen()} m\nGenerated platform length: ${platLen()} m\n`);
+ snd.file('README.txt','No route sounds are required by this compatibility build.');
+ z.file('WorldRail_README.txt','HMMSIM LEGACY / BVE COMPATIBILITY EXPORT\n\nThis build intentionally uses conservative BVE2/BVE4 syntax and static CSV objects only. Keep the ZIP compressed and place it in the Hmmsim Legacy add-on folder.\n');
  z.file('LICENSES.txt','WorldRail generated geometry: generated by WorldRail.\nThird-party asset packs must be redistributable (prefer CC0).\nOpenStreetMap map data © OpenStreetMap contributors.\n');
  const blob=await z.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=routeName+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)
 };
