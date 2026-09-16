@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: worldrail-hmmsim-studio
+    name: worldrail-sim
     runtime: node
     buildCommand: npm install && npm run build
     startCommand: npm start
