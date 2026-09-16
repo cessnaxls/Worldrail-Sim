@@ -4,7 +4,7 @@
 #speed{font-size:30px;font-weight:800}.controls{position:absolute;bottom:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:end}.lever{pointer-events:auto;width:72px;height:250px;background:#101820d9;border-radius:20px;padding:12px;display:flex;align-items:center;justify-content:center}.lever input{writing-mode:vertical-lr;direction:rtl;width:220px;height:50px}
 .buttons{display:grid;grid-template-columns:repeat(2,70px);gap:8px;pointer-events:auto}.btn{text-align:center;font-weight:700;user-select:none}.btn:active{transform:scale(.96)}
 #status{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:#101820d9;padding:8px 14px;border-radius:10px}
-</style></head><body><canvas id=c></canvas><div id=hud><div class=top><div class=pill><b>WORLDRAIL</b><br><span id=mode>Cab camera</span></div><div class=pill><span id=speed>0</span> km/h<br><span id=limit>Limit 90</span></div></div><div id=status>Native simulator • no Hmmsim</div>
+</style></head><body><canvas id=c></canvas><div id=hud><div class=top><div class=pill><b>WORLDRAIL NATIVE V1.1</b><br><span id=mode>Cab camera</span></div><div class=pill><span id=speed>0</span> km/h<br><span id=limit>Limit 90</span></div></div><div id=status>Native simulator • no Hmmsim</div>
 <div class=controls><div class=lever><input id=power type=range min=-8 max=5 value=0 step=1></div><div class=buttons><div class=btn id=cam>CAM</div><div class=btn id=horn>HORN</div><div class=btn id=doors>DOORS</div><div class=btn id=reset>RESET</div></div></div></div>
 <script src="/babylon.js"></script><script>
 const B=BABYLON,canvas=document.getElementById('c'),engine=new B.Engine(canvas,true,{preserveDrawingBuffer:false,stencil:false,antialias:true});
