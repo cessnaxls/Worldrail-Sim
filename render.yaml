@@ -1,6 +1,9 @@
 services:
   - type: web
     name: worldrail-sim
-    runtime: static
+    runtime: node
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
