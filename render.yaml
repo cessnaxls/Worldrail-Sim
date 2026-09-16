@@ -1,6 +1,6 @@
 services:
 - type: web
-  name: indy-vertical-slice
+  name: openworld-webgl-engine
   runtime: node
   buildCommand: npm install
   startCommand: npm start

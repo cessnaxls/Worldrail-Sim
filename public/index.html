@@ -1,8 +1,6 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>Open Wheel // Vertical Slice</title><link rel="stylesheet" href="style.css"></head><body>
-<canvas id="c"></canvas>
-<div id="boot"><b>OPEN WHEEL // TEST CIRCUIT</b><span id="bootText">Starting renderer…</span></div>
-<div id="hud"><div class="left"><div><b id="mph">0</b><small>MPH</small></div><div><b id="gear">1</b><small>GEAR</small></div></div><div class="right"><span id="fps">-- FPS</span><span id="steerRead">TILT 0%</span></div></div>
-<div id="controls"><button id="brake">BRAKE</button><button id="gas">THROTTLE</button></div>
-<button id="motion">ENABLE TILT STEERING</button>
-<div id="err"></div>
-<script src="/vendor/babylon.js"></script><script src="game.js"></script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>OpenWorld Engine</title><link rel="stylesheet" href="style.css"></head><body>
+<canvas id="gl"></canvas><div id="boot"><b>OPENWORLD // NATIVE WEBGL</b><span id="status">Initializing GPU…</span></div>
+<div id="hud"><div class="chip"><b id="fps">--</b><small>FPS</small></div><div class="chip"><b id="objects">--</b><small>VISIBLE</small></div><div class="chip wide"><b id="place">WILDERNESS</b><small>SECTOR</small></div></div>
+<div id="help">Drag to look • Left pad to move • Explore freely</div>
+<div id="stick"><div id="nub"></div></div><div id="err"></div>
+<script src="engine.js"></script></body></html>

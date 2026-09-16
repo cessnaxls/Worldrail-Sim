@@ -1,6 +1,0 @@
-services:
-- type: web
-  name: indy-vertical-slice
-  runtime: node
-  buildCommand: npm install
-  startCommand: npm start

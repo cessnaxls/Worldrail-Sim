@@ -1,14 +1,11 @@
 {
-  "name": "indy-vertical-slice",
+  "name": "openworld-webgl-engine",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "node server.js"
   },
-  "dependencies": {
-    "babylonjs": "9.12.1"
-  },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   }
 }

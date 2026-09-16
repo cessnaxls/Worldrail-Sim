@@ -1,16 +1,36 @@
-# Open Wheel Vertical Slice v1
+# OpenWorld Native WebGL Engine v1
 
-Purposefully small iPad-first 3D proof before rebuilding the full procedural racer.
+A zero-dependency graphics engine built directly on WebGL/WebGL2 for iPad Safari.
 
-This build contains:
-- one fixed sweeping 3D test circuit with real mesh elevation
-- PBR asphalt, grass, painted curbs, metal guardrails
-- modeled open-wheel test car with four exposed tires, wings, cockpit and halo
-- chase camera
-- touch throttle and brake
-- iOS device-orientation steering permission button
-- live FPS
-- dynamic device-resolution reduction
-- NO AI and NO procedural track generation yet, intentionally
+This is not Babylon.js, Three.js, Unity or Unreal. The engine owns:
+- GLSL vertex and fragment shaders
+- GPU vertex/index buffers
+- perspective/view matrices
+- depth testing and back-face culling
+- directional + hemispheric-style shader lighting
+- distance fog and simple tone mapping
+- distance culling
+- dynamic resolution scaling to protect iPad frame rate
+- touch free-look and virtual movement stick
+- deterministic open world generation
+- animated road traffic and train traffic
 
-Babylon.js is installed as an npm dependency and served locally by the Node server. There is no Babylon CDN dependency.
+World content:
+- forest foliage
+- rocks
+- procedural town buildings
+- main road and sidewalks
+- railroad ballast/sleepers/rails
+- moving cars
+- moving five-car train
+
+Performance safeguards:
+- no external libraries or CDN
+- no texture downloads
+- no shadows in v1
+- capped 350m render distance
+- dynamic render scale
+- device pixel ratio is deliberately controlled
+- simple shared meshes/material colors
+
+Deploy using the included render.yaml.
