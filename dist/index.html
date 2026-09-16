@@ -5,7 +5,8 @@
 <div class='panel'><h3>2 · Custom train</h3><div class='row'><div><label>Name</label><input id='trainName' value='WorldRail EMU'></div><div><label>Type</label><select id='trainType'><option>Electric EMU</option><option>Subway EMU</option><option>DMU</option><option>Diesel locomotive</option></select></div></div><div class='row'><div><label>Cars</label><input id='cars' type='number' value='4' min='1' max='12'></div><div><label>Car length (m)</label><input id='carLength' type='number' value='20' step='.1'></div></div><div class='row'><div><label>Width (m)</label><input id='width' type='number' value='2.9' step='.1'></div><div><label>Mass/car (t)</label><input id='mass' type='number' value='42'></div></div><div class='row'><div><label>Max speed (km/h)</label><input id='maxSpeed' type='number' value='120'></div><div><label>Accel (km/h/s)</label><input id='accel' type='number' value='3.0' step='.1'></div></div><div class='row'><div><label>Service brake (km/h/s)</label><input id='brake' type='number' value='3.5' step='.1'></div><div><label>Doors/side/car</label><input id='doors' type='number' value='3'></div></div><div><label>Train length</label><div id='trainLength' class='metric'>80.0 m</div></div><p class='hint'>Every generated platform is automatically sized from consist length + stopping margin.</p></div>
 <div class='panel'><h3>3 · Platform engineering</h3><div class='row'><div><label>Stopping margin each end (m)</label><input id='margin' type='number' value='5'></div><div><label>Minimum platform (m)</label><input id='minPlatform' type='number' value='40'></div></div><div>Generated platform: <b id='platformLength' class='good'>90.0 m</b></div></div>
 <div class='panel'><h3>Stations</h3><div id='stationList' class='stationList'></div></div>
-<div class='panel'><h3>4 · Export</h3><button id='export'>Export Hmmsim Legacy ZIP</button><p class='hint'>Creates a native BVE add-on ZIP with Railway/ and Train/ at the ZIP root for current Hmmsim Legacy. Keep the ZIP compressed and move it into the Hmmsim Legacy folder in iPad Files.</p></div>
+<div class='panel'><h3>4 · Built-in community asset library</h3><p class='hint'><b>No WorldRail-generated primitive scenery.</b> WorldRail automatically loads its curated CC0 community library from the server. The initial library uses Kenney Train Kit and Kenney Building Kit. Artist-created OBJ meshes and their original textures are converted into Hmmsim/BVE objects during export.</p><div id='assetStatus' class='hint'>Loading built-in CC0 asset library…</div><div id='assetList' class='hint'></div><div class='row'><button id='reloadAssets' class='secondary'>Reload library</button><button id='assetInfo' class='secondary'>Asset sources</button></div></div>
+<div class='panel'><h3>5 · Export</h3><button id='export'>Export Hmmsim Legacy ZIP</button><p class='hint'>Creates a native BVE add-on ZIP with Railway/ and Train/ at the ZIP root for current Hmmsim Legacy. Keep the ZIP compressed and move it into the Hmmsim Legacy folder in iPad Files.</p></div>
 </aside><main class='content'><div id='map'></div><div class='overlay'><b>Route status</b><div id='status'>Choose a center or draw a route.</div><div id='summary'></div></div></main></div></div>
 <script>
 const map=L.map('map',{zoomControl:true}).setView([39.7684,-86.1581],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
@@ -19,63 +20,69 @@ function redraw(){if(line)map.removeLayer(line);line=L.polyline(route,{color:'#f
 function dest(lat,lng,bearing,km){let R=6371,d=km/R,b=bearing*Math.PI/180,p=lat*Math.PI/180,l=lng*Math.PI/180;let p2=Math.asin(Math.sin(p)*Math.cos(d)+Math.cos(p)*Math.sin(d)*Math.cos(b));let l2=l+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(p),Math.cos(d)-Math.sin(p)*Math.sin(p2));return L.latLng(p2*180/Math.PI,l2*180/Math.PI)}
 $('generate').onclick=()=>{if(!center){center=map.getCenter()} route=[];stations=[];let r=+$('radius').value*1.60934, sp=+$('spacing').value*1.60934,bearing=Math.round(Math.random()*360);let n=Math.max(2,Math.floor((r*2)/sp));for(let i=0;i<=80;i++){let t=i/80,along=-r+2*r*t;let base=dest(center.lat,center.lng,bearing,Math.abs(along));if(along<0)base=dest(center.lat,center.lng,(bearing+180)%360,Math.abs(along));let wiggle=Math.sin(t*Math.PI*2)*Math.min(.22,r*.015);route.push(dest(base.lat,base.lng,bearing+90,wiggle))}for(let i=0;i<=n;i++){let idx=Math.round(i/n*(route.length-1)),p=route[idx];stations.push({name:i===0?'West Terminal':i===n?'East Terminal':'Station '+i,lat:p.lat,lng:p.lng,platform:platLen()});L.marker(p).addTo(map)}redraw();$('status').textContent='Generated. Platform lengths tied to current train.'};
 function hav(a,b){let R=6371000,p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dp=(b.lat-a.lat)*Math.PI/180,dl=(b.lng-a.lng)*Math.PI/180,x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
-function makeObject(name,w,h,d,color){return `; WorldRail generated BVE CSV object: ${name}\nCreateMeshBuilder\nAddVertex,${-w/2},0,${-d/2}\nAddVertex,${w/2},0,${-d/2}\nAddVertex,${w/2},${h},${-d/2}\nAddVertex,${-w/2},${h},${-d/2}\nAddVertex,${-w/2},0,${d/2}\nAddVertex,${w/2},0,${d/2}\nAddVertex,${w/2},${h},${d/2}\nAddVertex,${-w/2},${h},${d/2}\nAddFace,0,1,2,3\nAddFace,4,7,6,5\nAddFace,0,4,5,1\nAddFace,3,2,6,7\nAddFace,1,5,6,2\nAddFace,0,3,7,4\nSetColor,${color}\n`}
+function texBox(name,w,h,d,texture){
+ const v=[[-w/2,0,-d/2],[w/2,0,-d/2],[w/2,h,-d/2],[-w/2,h,-d/2],[-w/2,0,d/2],[w/2,0,d/2],[w/2,h,d/2],[-w/2,h,d/2]];
+ let o=`; WorldRail textured BVE CSV object: ${name}\nCreateMeshBuilder\n`+v.map(x=>`AddVertex,${x.join(',')}\n`).join('');
+ o+='AddFace,0,1,2,3\nAddFace,4,7,6,5\nAddFace,0,4,5,1\nAddFace,3,2,6,7\nAddFace,1,5,6,2\nAddFace,0,3,7,4\n';
+ o+=`LoadTexture,${texture}\nSetCoordinates,0,0,1\nSetCoordinates,1,1,1\nSetCoordinates,2,1,0\nSetCoordinates,3,0,0\nSetCoordinates,4,1,1\nSetCoordinates,5,0,1\nSetCoordinates,6,0,0\nSetCoordinates,7,1,0\n`;
+ return o;
+}
+function coloredBox(w,h,d,x,y,z,color){return `CreateMeshBuilder\nCube,${w/2},${h/2},${d/2}\nTranslate,${x},${y+h/2},${z}\nSetColor,${color}\n`}
+function railObject(){return `; two steel rails plus ballast\n${texBox('ballast',3.4,.18,25,'ballast.png')}\n${coloredBox(.075,.14,25,-.7175,.18,0,'82,84,88,255')}${coloredBox(.075,.14,25,.7175,.18,0,'82,84,88,255')}`}
+function sleeperObject(){return `${coloredBox(2.55,.12,.24,0,.02,0,'92,69,48,255')}`}
+function platformObject(len){return `${texBox('platform',4,.42,len,'platform.png')}\n${coloredBox(.12,.12,len,-1.94,.42,0,'238,210,74,255')}`}
+function canopyObject(len){return `${coloredBox(4.2,.14,len,0,3.05,0,'88,96,105,255')}${coloredBox(.16,3.0,.16,-1.65,.05,-len*.35,'95,100,105,255')}${coloredBox(.16,3.0,.16,1.65,.05,-len*.35,'95,100,105,255')}${coloredBox(.16,3.0,.16,-1.65,.05,len*.35,'95,100,105,255')}${coloredBox(.16,3.0,.16,1.65,.05,len*.35,'95,100,105,255')}`}
+function buildingObject(){return `${texBox('brick building',14,12,12,'brick.png')}\n${coloredBox(14.5,.7,12.5,0,12,0,'60,64,70,255')}`}
+function treeObject(){return `${coloredBox(.5,4,.5,0,0,0,'91,58,35,255')}CreateMeshBuilder\nCylinder,8,2.4,4.5\nTranslate,0,4.0,0\nSetColor,48,112,58,255\n`}
+function signalObject(){return `${coloredBox(.16,4.2,.16,0,0,0,'85,90,96,255')}${coloredBox(.65,1.55,.35,0,3.3,0,'35,38,42,255')}CreateMeshBuilder\nCylinder,16,.19,.08\nRotate,1,0,0,90\nTranslate,0,4.45,-.22\nSetColor,220,35,35,255\n`}
+function trainObject(w,h,d,doors){
+ let o=`; WorldRail detailed custom rolling stock\n${texBox('car body',w,h,d,'train_body.png')}`;
+ // dark underframe and two bogies
+ o+=coloredBox(w*.82,.45,d*.82,0,-.38,0,'32,35,39,255');
+ for(const z of [-d*.32,d*.32]){o+=coloredBox(w*.86,.45,2.4,0,-.55,z,'45,47,50,255'); for(const x of [-w*.37,w*.37]) o+=`CreateMeshBuilder\nCylinder,16,.34,.16\nRotate,0,0,1,90\nTranslate,${x},-.58,${z-0.55}\nSetColor,30,31,33,255\nCreateMeshBuilder\nCylinder,16,.34,.16\nRotate,0,0,1,90\nTranslate,${x},-.58,${z+0.55}\nSetColor,30,31,33,255\n`;}
+ // windows and doors as thin panels on both sides
+ const windowY=h*.58, count=Math.max(4,doors*2+2), step=d/(count+1);
+ for(let i=1;i<=count;i++){const z=-d/2+i*step; const isDoor=(i%2===0 && i<=doors*2); const ww=isDoor?.82:1.15, hh=isDoor?2.45:1.05, yy=isDoor?.25:windowY; for(const x of [-w/2-.012,w/2+.012]) o+=coloredBox(.025,hh,ww,x,yy,z,isDoor?'185,190,194,255':'28,48,62,255');}
+ // roof equipment
+ o+=coloredBox(w*.55,.18,2.8,0,h+.03,0,'88,92,96,255');
+ return o;
+}
+function makeTexture(kind,size=128){
+ const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');
+ if(kind==='ballast'){g.fillStyle='#6f6c68';g.fillRect(0,0,size,size);for(let i=0;i<500;i++){let q=70+Math.random()*90;g.fillStyle=`rgb(${q},${q*.96},${q*.9})`;g.fillRect(Math.random()*size,Math.random()*size,2+Math.random()*4,1+Math.random()*3)}}
+ if(kind==='platform'){g.fillStyle='#a7a7a2';g.fillRect(0,0,size,size);g.strokeStyle='#858580';g.lineWidth=2;for(let x=0;x<size;x+=24){g.beginPath();g.moveTo(x,0);g.lineTo(x,size);g.stroke()}for(let y=0;y<size;y+=24){g.beginPath();g.moveTo(0,y);g.lineTo(size,y);g.stroke()}}
+ if(kind==='brick'){g.fillStyle='#8a5a46';g.fillRect(0,0,size,size);g.strokeStyle='#c3a58f';g.lineWidth=2;for(let y=0;y<size;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(size,y);g.stroke();for(let x=(y/16%2)*16;x<size;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke()}}}
+ if(kind==='train'){g.fillStyle='#145d88';g.fillRect(0,0,size,size);let grad=g.createLinearGradient(0,0,0,size);grad.addColorStop(0,'rgba(255,255,255,.30)');grad.addColorStop(.35,'rgba(255,255,255,.04)');grad.addColorStop(1,'rgba(0,0,0,.28)');g.fillStyle=grad;g.fillRect(0,0,size,size);g.fillStyle='#e4e7e9';g.fillRect(0,size*.72,size,size*.08)}
+ return new Promise(res=>c.toBlob(res,'image/png'));
+}
+const assetLibrary={files:new Map(),objs:[],textures:new Map(),packs:[],ready:false};
+function normPath(x){return x.replace(/\\/g,'/').replace(/^\.\//,'')}
+function baseName(x){return normPath(x).split('/').pop()}
+function dirName(x){const a=normPath(x).split('/');a.pop();return a.join('/')}
+function assetCategory(name){const n=name.toLowerCase();if(/locomotive|train|tram|trolley|wagon|carriage|passenger|metro/.test(n))return'train';if(/rail|track|straight|curve/.test(n))return'track';if(/station|platform/.test(n))return'platform';if(/signal|semaphore/.test(n))return'signal';if(/tree|bush|plant|nature/.test(n))return'nature';if(/building|house|shop|industrial|office|wall|roof|door|window/.test(n))return'building';if(/road|street|crossing/.test(n))return'road';return'other'}
+async function ingestPack(arrayBuffer,packName){const zip=await JSZip.loadAsync(arrayBuffer);let count=0;for(const [path,e] of Object.entries(zip.files)){if(e.dir)continue;const np=normPath(path),low=np.toLowerCase();if(low.endsWith('.obj')){const text=await e.async('text');assetLibrary.objs.push({path:np,name:baseName(np),text,category:assetCategory(np),pack:packName});count++}else if(/\.(png|jpg|jpeg|bmp)$/i.test(low)){const data=await e.async('uint8array');assetLibrary.textures.set(np.toLowerCase(),data);assetLibrary.textures.set(baseName(np).toLowerCase(),data)}else if(low.endsWith('.mtl')){assetLibrary.files.set(np.toLowerCase(),await e.async('text'));assetLibrary.files.set(baseName(np).toLowerCase(),await e.async('text'))}}assetLibrary.packs.push(packName);return count}
+function renderAssets(){const counts={};assetLibrary.objs.forEach(o=>counts[o.category]=(counts[o.category]||0)+1);$('assetStatus').innerHTML=assetLibrary.ready?`<span class=good>Built-in library ready:</span> ${assetLibrary.objs.length} artist-created meshes from ${assetLibrary.packs.join(', ')}.`:`<span class=warn>Built-in asset library unavailable.</span> Export stays locked rather than generating substitute boxes.`;$('assetList').innerHTML=Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join(' · ')}
+async function loadBuiltins(){assetLibrary.files.clear();assetLibrary.objs=[];assetLibrary.textures.clear();assetLibrary.packs=[];assetLibrary.ready=false;renderAssets();$('assetStatus').textContent='Downloading built-in CC0 community assets…';try{const errors=[];for(const pack of ['train','building']){try{const r=await fetch('/api/assets/'+pack,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status+' '+await r.text());await ingestPack(await r.arrayBuffer(),pack==='train'?'Kenney Train Kit (CC0)':'Kenney Building Kit (CC0)')}catch(e){errors.push(pack+': '+e.message);console.warn('Asset pack failed',pack,e)}}assetLibrary.ready=assetLibrary.objs.length>0;renderAssets();if(errors.length)$('assetStatus').innerHTML+=(assetLibrary.ready?' <span class=warn>Some packs unavailable:</span> ':' <span class=warn>Server asset download failed:</span> ')+errors.join(' · ')}catch(e){$('assetStatus').textContent='Asset library error: '+e.message;console.error(e)}}
+$('reloadAssets').onclick=loadBuiltins;$('assetInfo').onclick=()=>alert('Built-in sources: Kenney Train Kit and Kenney Building Kit, both CC0 1.0. WorldRail converts the original OBJ meshes and textures; it does not synthesize primitive scenery.');
+loadBuiltins();
+function parseOBJ(text){let V=[],VT=[],faces=[],mtl='default',mtllib=null;for(const raw of text.split(/\r?\n/)){const l=raw.trim();if(!l||l[0]==='#')continue;const a=l.split(/\s+/),cmd=a.shift();if(cmd==='v')V.push(a.slice(0,3).map(Number));else if(cmd==='vt')VT.push(a.slice(0,2).map(Number));else if(cmd==='usemtl')mtl=a.join(' ')||'default';else if(cmd==='mtllib')mtllib=a.join(' ');else if(cmd==='f'){let f=a.map(t=>{let q=t.split('/');return{v:+q[0],vt:q[1]?+q[1]:0}});for(let i=1;i<f.length-1;i++)faces.push({m:mtl,q:[f[0],f[i],f[i+1]]})}}return{V,VT,faces,mtllib}}
+function parseMTL(text){const out={};let cur='default';out[cur]={kd:[.72,.72,.72],map:null};for(const raw of (text||'').split(/\r?\n/)){const l=raw.trim();if(!l||l[0]==='#')continue;const a=l.split(/\s+/),cmd=a.shift().toLowerCase();if(cmd==='newmtl'){cur=a.join(' ');out[cur]={kd:[.72,.72,.72],map:null}}else if(cmd==='kd'){out[cur]??={};out[cur].kd=a.slice(0,3).map(Number)}else if(cmd==='map_kd'){out[cur]??={};out[cur].map=a.join(' ')}}return out}
+function findMTL(obj,mtllib){if(!mtllib)return'';const dir=dirName(obj.path),cands=[(dir?dir+'/':'')+mtllib,mtllib,baseName(mtllib)];for(const c of cands){const t=assetLibrary.files.get(c.toLowerCase());if(t)return t}return''}
+function findTexture(obj,map){if(!map)return null;const dir=dirName(obj.path),bn=baseName(map);const cands=[(dir?dir+'/':'')+normPath(map),normPath(map),bn];for(const c of cands){const d=assetLibrary.textures.get(c.toLowerCase());if(d)return{data:d,name:bn}}return null}
+function objToBVE(obj,scale=1,textureCollector=null){const m=parseOBJ(obj.text);if(!m.V.length||!m.faces.length)throw new Error('Empty OBJ '+obj.name);const mats=parseMTL(findMTL(obj,m.mtllib));let out='; Converted from CC0 third-party OBJ: '+obj.name+'\n';const groups={};for(const f of m.faces)(groups[f.m]??=[]).push(f);for(const [matName,fs] of Object.entries(groups)){const mat=mats[matName]||mats.default||{kd:[.72,.72,.72],map:null};out+='CreateMeshBuilder\n';let idx=0;for(const f of fs){const face=[];for(const q of f.q){const vi=q.v>0?q.v-1:m.V.length+q.v,v=m.V[vi]||[0,0,0],uv=q.vt?(m.VT[q.vt>0?q.vt-1:m.VT.length+q.vt]||[0,0]):[0,0];out+=`AddVertex,${(v[0]*scale).toFixed(5)},${(v[1]*scale).toFixed(5)},${(v[2]*scale).toFixed(5)}\n`;out+=`SetTextureCoordinates,${idx},${(+uv[0]).toFixed(5)},${(1-(+uv[1])).toFixed(5)}\n`;face.push(idx++)}out+='AddFace,'+face.join(',')+'\n'}const tex=findTexture(obj,mat.map);if(tex&&textureCollector){const safe=(obj.pack+'_'+tex.name).replace(/[^A-Za-z0-9_.-]/g,'_');textureCollector.set(safe,tex.data);out+=`LoadTexture,${safe}\n`}else{const c=(mat.kd||[.72,.72,.72]).map(x=>Math.max(0,Math.min(255,Math.round(x*255))));out+=`SetColor,${c[0]},${c[1]},${c[2]},255\n`}}return out}
+function pick(cat,re){let a=assetLibrary.objs.filter(o=>o.category===cat);if(re){let b=a.filter(o=>re.test(o.name.toLowerCase()));if(b.length)a=b}return a[0]||null}
+async function addConverted(objFolder,src,outName,scale=1,textureCollector=null){if(!src)return null;objFolder.file(outName,objToBVE(src,scale,textureCollector));return outName}
 $('export').onclick=async()=>{
- if(route.length<2){alert('Generate or draw a route first.');return}
- const z=new JSZip(), railway=z.folder('Railway'), routeDir=railway.folder('Route'), obj=railway.folder('Object/WorldRail'), snd=railway.folder('Sound/WorldRail'), tr=z.folder('Train/CustomTrain');
- const safe=s=>String(s||'WorldRail').replace(/[^A-Za-z0-9_-]/g,'_');
- const routeName=safe($('trainName').value)+'_Route';
- const cars=Math.max(1,Math.min(12,+$('cars').value||1));
- const carLength=Math.max(8,Math.min(30,+$('carLength').value||20));
- const width=Math.max(2,Math.min(4,+$('width').value||2.8));
- const accel=Math.max(.2,Math.min(5,+$('accel').value||1));
- const brake=Math.max(.2,Math.min(5,+$('brake').value||1));
- const vmax=Math.max(20,Math.min(250,+$('maxSpeed').value||100));
- // Conservative BVE2/BVE4-compatible route. Avoid OpenBVE-only macros / animated objects.
- let routeCsv='With Options\n.UnitOfLength 1\n.UnitOfSpeed 1\n.BlockLength 25\nWith Route\n.Gauge 1435\n.DeveloperID WorldRail\nWith Train\n.Folder CustomTrain\nWith Structure\n.Rail(0).Load WorldRail\\rail.csv\n.FreeObj(0).Load WorldRail\\platform.csv\n.FreeObj(1).Load WorldRail\\station_canopy.csv\n.FreeObj(2).Load WorldRail\\building.csv\nWith Track\n';
- // Rail structures are one BVE block (25m) long. Platforms run along +Z.
- obj.file('rail.csv',makeObject('rail',1.6,.16,25,'95,95,100,255'));
- obj.file('platform.csv',makeObject('platform',4,.35,platLen(),'145,145,145,255'));
- obj.file('station_canopy.csv',makeObject('canopy',4.5,3.2,Math.min(platLen(),40),'90,90,95,255'));
- obj.file('building.csv',makeObject('building',12,10,12,'125,120,110,255'));
- let total=0; for(let i=1;i<route.length;i++) total+=map.distance(route[i-1],route[i]);
- total=Math.max(500,Math.round(total/25)*25);
- routeCsv+='0,.RailType 0;0,.Limit '+Math.round(vmax)+'\n';
- // Place stations by their nearest cumulative distance, but keep them away from route boundaries.
- const stationPositions=[];
- stations.forEach((s,idx)=>{
-   let best=0,bd=1e20,acc=0;
-   for(let i=1;i<route.length;i++){const seg=map.distance(route[i-1],route[i]),dd=map.distance(s,route[i]);if(dd<bd){bd=dd;best=acc+seg}acc+=seg}
-   let pos=Math.max(100,Math.min(total-100,Math.round(best/25)*25));
-   stationPositions.push({pos,name:safe(s.name||('Station_'+(idx+1)))})
- });
- stationPositions.sort((a,b)=>a.pos-b.pos);
- // De-duplicate stops that land in the same BVE block.
- let lastPos=-999;
- stationPositions.forEach((st,idx)=>{
-   if(st.pos-lastPos<50) st.pos=Math.min(total-100,lastPos+50);
-   lastPos=st.pos;
-   routeCsv+=`${st.pos},.Sta ${st.name};;;0;-1;0;0;;15;100;;0,.Stop -1;5;5;${cars},.FreeObj 0;0;3;0;0;0;0,.FreeObj 0;1;3;0;0;0;0\n`;
- });
- routeCsv+=`${total},.Buffer\n`;
- routeDir.file(routeName+'.csv',routeCsv);
- // Valid BVE2-format train.dat. The previous exporter wrote raw values without section headers,
- // which could make native mobile parsers fail hard.
- const powerNotches=4, brakeNotches=8;
- const a0=(accel*3.6).toFixed(3), a1=(accel*3.6).toFixed(3);
- const motorCars=Math.max(1,Math.ceil(cars/2)), trailerCars=cars-motorCars;
- const td=`BVE2000000\n#ACCELERATION\n${a0},${a1},25,45,1.2\n${a0},${a1},35,60,1.3\n${a0},${a1},45,80,1.5\n${a0},${a1},55,${Math.max(70,Math.round(vmax))},1.7\n#PERFORMANCE\n${(brake*3.6).toFixed(3)}\n0.30\n0\n0.0025\n1.1\n#DELAY\n0.2\n0.2\n0.2\n0.2\n#MOVE\n500\n500\n500\n500\n300\n200\n#BRAKE\n1\n2\n10\n#PRESSURE\n440\n480\n690\n780\n490\n#HANDLE\n1\n${powerNotches}\n${brakeNotches}\n0\n#CAB\n0\n2600\n-1500\n0\n#CAR\n40\n${motorCars}\n36\n${trailerCars}\n${carLength}\n1\n${width}\n3.8\n1.6\n${(width*3.8*.65).toFixed(2)}\n${(width*3.8*.20).toFixed(2)}\n#DEVICE\n-1\n0\n0\n0\n0\n0\n0\n0\n`;
- tr.file('train.dat',td);
- // Keep the exterior deliberately simple: one valid static CSV object per car.
- tr.file('extensions.cfg',Array.from({length:cars},(_,i)=>`[Car${i}]\nObject = car.csv\nLength = ${carLength}\nAxles = ${(-carLength*.35).toFixed(2)}, ${(carLength*.35).toFixed(2)}\nReversed = false\n`).join('\n'));
- tr.file('car.csv',makeObject('custom train car',width,3.8,carLength,'35,105,180,255'));
- // Minimal panel2 uses no external images, reducing missing-file failure points.
- tr.file('panel2.cfg','[This]\nResolution = 1024\nLeft = 0\nRight = 1024\nTop = 0\nBottom = 768\nCenter = 512,384\nOrigin = 512,384\n\n[DigitalGauge]\nSubject = kmph\nLocation = 512,650\nRadius = 80\nColor = #FFFFFF\nInitialAngle = -120\nLastAngle = 120\nMinimum = 0\nMaximum = '+Math.round(vmax)+'\n');
- tr.file('README.txt',`Custom train: ${$('trainName').value}\nType: ${$('trainType').value}\nCars: ${cars}\nTrain length: ${trainLen()} m\nGenerated platform length: ${platLen()} m\n`);
- snd.file('README.txt','No route sounds are required by this compatibility build.');
- z.file('WorldRail_README.txt','HMMSIM LEGACY / BVE COMPATIBILITY EXPORT\n\nThis build intentionally uses conservative BVE2/BVE4 syntax and static CSV objects only. Keep the ZIP compressed and place it in the Hmmsim Legacy add-on folder.\n');
- z.file('LICENSES.txt','WorldRail generated geometry: generated by WorldRail.\nThird-party asset packs must be redistributable (prefer CC0).\nOpenStreetMap map data © OpenStreetMap contributors.\n');
- const blob=await z.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=routeName+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)
+ if(route.length<2)return alert('Create a route first.');if(!stations.length)return alert('Add at least one station.');if(!assetLibrary.ready){if(!confirm('The community asset server is currently unavailable. Export the Hmmsim route anyway with NO substitute geometry/scenery? You can still drive the route, but it will be visually sparse.'))return;}
+ const z=new JSZip(),railway=z.folder('Railway'),routeDir=railway.folder('Route'),obj=railway.folder('Object/Community'),snd=railway.folder('Sound/WorldRail'),tr=z.folder('Train/CustomTrain');
+ const routeName=($('routeName').value||'WorldRail_Route').replace(/[^A-Za-z0-9_-]/g,'_');
+ const track=pick('track',/straight|track|rail/),platform=pick('platform'),signal=pick('signal'),nature=pick('nature'),building=pick('building'),train=pick('train',/passenger|tram|train|locomotive/);
+ const usedTextures=new Map(),trainTextures=new Map();const names={};names.track=await addConverted(obj,track,'track.csv',1,usedTextures);names.platform=await addConverted(obj,platform,'platform.csv',1,usedTextures);names.signal=await addConverted(obj,signal,'signal.csv',1,usedTextures);names.nature=await addConverted(obj,nature,'nature.csv',1,usedTextures);names.building=await addConverted(obj,building,'building.csv',1,usedTextures);if(train)tr.file('car.csv',objToBVE(train,1,trainTextures));for(const [name,data] of usedTextures)obj.file(name,data);for(const [name,data] of trainTextures)tr.file(name,data);
+ let dist=[0];for(let i=1;i<route.length;i++)dist.push(dist[i-1]+hav(route[i-1],route[i]));const total=dist.at(-1),step=25;let lines=['With Route','.Gauge 1435','.Comment WorldRail third-party-assets-only export','With Structure'];if(names.track)lines.push(`.Rail(0).Load Community\\${names.track}`);if(names.platform)lines.push(`.Ground(0).Load Community\\${names.platform}`);if(names.signal)lines.push(`.FreeObj(0).Load Community\\${names.signal}`);if(names.nature)lines.push(`.FreeObj(1).Load Community\\${names.nature}`);if(names.building)lines.push(`.FreeObj(2).Load Community\\${names.building}`);lines.push('With Track');
+ for(let d=0;d<=total;d+=step){let i=1;while(i<dist.length&&dist[i]<d)i++;i=Math.min(i,dist.length-1);const a=route[i-1],b=route[i],br=bearing(a,b);lines.push(`${Math.round(d)},.Limit ${Math.min(120,+$('maxSpeed').value||120)}${names.track?',.RailType 0;0':''}`);if(names.nature&&d%200===0)lines.push(`,.FreeObj 0;1;${(8+(d%17)).toFixed(1)};0;0`);if(names.building&&d%500===0)lines.push(`,.FreeObj 0;2;${(-20-(d%23)).toFixed(1)};0;0`)}
+ stations.forEach((s,i)=>{let best=0,bd=1e99;route.forEach((p,j)=>{let q=haversineLL(p,s);if(q<bd){bd=q;best=dist[j]}});lines.push(`${Math.round(best)},.Sta ${s.name};S;0;0;0;0;0;0;${Math.round(platLen())};0${names.platform?',.Ground 0':''}`)});routeDir.file(routeName+'.csv',lines.join('\r\n'));
+ const cars=Math.max(1,+$('cars').value||1),carLength=+$('carLength').value||20,motor=Math.max(1,Math.ceil(cars/2)),trailer=Math.max(0,cars-motor);tr.file('train.dat',`BVE2000000\n#ACCELERATION\n1.6,1.1,30,80,1.5\n#PERFORMANCE\n1.0\n#BRAKE\n0\n0\n0\n#PRESSURE\n440\n490\n690\n#HANDLE\n0\n5\n8\n0\n#CAB\n0\n2.7\n-6\n${cars}\n#CAR\n${+$('mass').value||40}\n${motor}\n${+$('mass').value||40}\n${trailer}\n${carLength}\n1\n${+$('width').value||2.8}\n3.8\n1.5\n`);if(train)tr.file('extensions.cfg',Array.from({length:cars},(_,i)=>`[Car${i}]\nObject = car.csv\nLength = ${carLength}\n`).join('\n'));tr.file('panel.cfg','[This]\nResolution = 1024\nLeft = 0\nRight = 1024\nTop = 0\nBottom = 768\n');z.file('LICENSES.txt',`WorldRail contains no generated 3D scenery in this export. Meshes and textures were converted from WorldRail's built-in CC0 third-party library: ${assetLibrary.packs.join(', ')}. Kenney assets are CC0 1.0. No WorldRail-generated primitive 3D scenery is used.\nOpenStreetMap map data © OpenStreetMap contributors.\n`);z.file('ASSET_MANIFEST.txt',assetLibrary.objs.map(o=>`${o.category}\t${o.path}`).join('\n'));const blob=await z.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=routeName+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)
 };
+function haversineLL(a,b){return hav(a,b)}
 function bearing(a,b){const A=a.lat*Math.PI/180,B=b.lat*Math.PI/180,d=(b.lng-a.lng)*Math.PI/180;return (Math.atan2(Math.sin(d)*Math.cos(B),Math.cos(A)*Math.sin(B)-Math.sin(A)*Math.cos(B)*Math.cos(d))*180/Math.PI+360)%360}
 </script></body></html>

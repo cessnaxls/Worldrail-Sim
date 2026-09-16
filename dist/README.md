@@ -1,15 +1,7 @@
-# WorldRail → Hmmsim Route Studio
+# WorldRail → Hmmsim Route Generator
 
-Static iPad-friendly web prototype. Open `index.html` through a web host (GitHub Pages/Render static site) and generate a BVE-style route package.
+This build automatically uses a built-in curated CC0 community asset library. No user asset import is required and WorldRail does not synthesize primitive fallback scenery.
 
-## Included in this build
-- Leaflet map route drawing and center/radius generation
-- Custom train builder
-- Platform length automatically equals train length + configurable stopping margins, subject to minimum platform length
-- BVE-style route CSV generation
-- BVE-style train.dat and extensions.cfg generation
-- Generated CC0-style basic BVE CSV objects for platform, canopy, buildings, signals, trees, rails and train cars
-- ZIP export with Route/Object/Sound/Train structure and license manifest
+At runtime the Render server caches the original Kenney Train Kit and Building Kit ZIP archives, and the browser converts selected artist-created OBJ meshes + their original textures to BVE/Hmmsim CSV objects for each exported route.
 
-## Asset packs
-This source build is prepared for Kenney Train Kit (CC0) and Poly Haven (CC0). Their binary asset packs are not mirrored in this repository; the generated BVE CSV objects are bundled and the exporter emits a license/source manifest. Before public redistribution, validate every third-party asset and Hmmsim version-specific format requirement.
+Deploy as the existing Render Web Service with `npm install && npm run build` and `npm start`.
