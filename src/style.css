@@ -14,7 +14,6 @@
   .seg button{min-height:46px}.info{margin:16px 0;padding:10px}.primary{min-height:48px}
   .mapTools{left:10px;top:10px;right:10px;max-width:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;padding:5px}
   .mapTools button{min-width:0;padding:8px 5px;justify-content:center;white-space:nowrap;font-size:12px}
-  .mapTools button:nth-last-child(1){position:absolute;right:6px;top:58px;width:46px}
   .aiBox{top:72px!important;right:10px!important;width:250px!important;max-width:calc(100% - 20px);padding:12px!important}
   .mapHint{left:10px;right:10px;bottom:10px;width:auto;max-width:680px}
 }
@@ -24,3 +23,6 @@
  .mapTools button{justify-content:center}.aiBox{left:8px!important;right:8px!important;top:auto!important;bottom:58px!important;width:auto!important}
  .mapHint{display:none}
 }
+
+.clearNetwork{background:#171015!important;border-color:#63323a!important;color:#efb2b8!important;display:flex;align-items:center;justify-content:center;gap:7px;font:600 10px 'Barlow Condensed';letter-spacing:.6px}.clearNetwork:active{background:#35151b!important}.clearNetwork svg{width:15px;height:15px}
+.elevToggle{display:flex!important;align-items:center;gap:8px;margin:8px 0 10px!important;font-size:12px!important;color:#d9e2e8!important;letter-spacing:.02em!important}.elevToggle input{width:18px!important;height:18px!important;accent-color:#ffb000}.simTop span{white-space:nowrap}.three canvas{image-rendering:auto}
