@@ -1,0 +1,6 @@
+services:
+- type: web
+  name: openworld-webgl-engine
+  runtime: node
+  buildCommand: npm install
+  startCommand: npm start
