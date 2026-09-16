@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: worldrail-hmmsim-generator
-    runtime: node
+    name: worldrail-sim
+    env: node
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:

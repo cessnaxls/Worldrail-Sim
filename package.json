@@ -1,13 +1,1 @@
-{
-  "name": "worldrail-hmmsim-route-generator",
-  "version": "1.0.1",
-  "private": true,
-  "scripts": {
-    "build": "node build.mjs",
-    "start": "npx serve dist -l ${PORT:-10000}"
-  },
-  "dependencies": {
-    "serve": "^14.2.4"
-  },
-  "engines": { "node": ">=22" }
-}
+{"name":"worldrail-hmmsim-generator","version":"0.4.0","type":"module","scripts":{"build":"node build.mjs","start":"node server.js"},"dependencies":{"express":"4.21.2"},"engines":{"node":">=22"}}

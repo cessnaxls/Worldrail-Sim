@@ -1,14 +1,7 @@
-# WorldRail Hmmsim Route Generator — Third-Party Assets Only
+# WorldRail → Hmmsim Route Generator
 
-This build removes WorldRail's procedural box/cylinder scenery from the Hmmsim exporter.
+This build automatically uses a built-in curated CC0 community asset library. No user asset import is required and WorldRail does not synthesize primitive fallback scenery.
 
-Workflow:
-1. Build/generate the route and stations.
-2. Configure the custom train dimensions/performance.
-3. Download a compatible CC0/community asset pack containing OBJ models (Kenney Train Kit is the recommended first pack).
-4. Import the asset ZIP in WorldRail's Third-party asset library panel.
-5. Export the Hmmsim Legacy ZIP.
+At runtime the Render server caches the original Kenney Train Kit and Building Kit ZIP archives, and the browser converts selected artist-created OBJ meshes + their original textures to BVE/Hmmsim CSV objects for each exported route.
 
-WorldRail parses third-party OBJ meshes and converts those vertices/faces to BVE CSV object syntax. It never creates fallback primitive scenery. If no suitable station/tree/building/signal asset exists in the imported packs, that category is omitted.
-
-Platform length remains calculated from consist length + configured margins.
+Deploy as the existing Render Web Service with `npm install && npm run build` and `npm start`.
