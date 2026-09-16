@@ -1,0 +1,15 @@
+WorldRail iPad Performance Build
+Target: 30-40 FPS on 2021-class iPad hardware.
+
+Changes:
+- 520-object library remains bundled but is no longer parsed/loaded wholesale during Drive.
+- world streaming: 240 m tiles, 6 ahead / 2 behind; old tiles disposed.
+- sleepers merged into one mesh per tile.
+- buildings/roads merged by material.
+- vegetation uses Babylon thin instances.
+- no realtime shadows.
+- 620 m fog/render horizon.
+- antialiasing disabled at engine level.
+- dynamic hardware scaling targets 30-40 FPS.
+- detailed player train hidden in cab view and enabled only for chase view.
+- full 520-object GLB remains available to route/editor/catalog systems.

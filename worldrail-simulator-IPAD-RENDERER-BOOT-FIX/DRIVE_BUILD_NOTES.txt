@@ -1,0 +1,14 @@
+WORLDRAIL DRIVE V1
+- Drive button now opens a live canvas train simulator.
+- Touch power and brake levers.
+- Train acceleration/braking with drag and overspeed indication.
+- Speed limits by route segment.
+- Working block signals reacting to AI trains.
+- Three AI trains move independently ahead.
+- Station distances and accelerated timetable clock.
+- Cab/chase/trackside camera modes.
+- Horn and door chime use bundled audio.
+- Door interlock only allows doors at near-zero speed.
+- Emergency brake.
+- iPad touch/pointer controls and DPR capped at 2 for performance.
+This is the first functional driving layer. It uses a lightweight 2.5D renderer so it boots reliably on iPad Safari; realistic GLB/PBR scene integration is the next graphics layer.
