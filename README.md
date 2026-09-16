@@ -1,7 +1,7 @@
-# WorldRail → Hmmsim Route Generator
+# WorldRail Hmmsim Route Generator — Realistic Asset Library
 
-This build automatically uses a built-in curated CC0 community asset library. No user asset import is required and WorldRail does not synthesize primitive fallback scenery.
+This build removes Kenney from the built-in library and uses a curated third-party catalog intended for BVE/Hmmsim visual style. The Render server retrieves and caches approved source archives; the user does not import asset packs manually.
 
-At runtime the Render server caches the original Kenney Train Kit and Building Kit ZIP archives, and the browser converts selected artist-created OBJ meshes + their original textures to BVE/Hmmsim CSV objects for each exported route.
+Strict rule: no generated box/cylinder scenery fallback. If a required library asset is unavailable, it is omitted and the UI reports the missing pack.
 
-Deploy as the existing Render Web Service with `npm install && npm run build` and `npm start`.
+The starter catalog includes CC0 realistic architecture, a CC0 textured locomotive source, and the public-domain BRSigs_Open signal library. Some source archives may contain formats the current browser converter cannot yet ingest; those are reported rather than replaced with fake geometry.

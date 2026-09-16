@@ -3,8 +3,10 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 const app=express(), __dirname=path.dirname(fileURLToPath(import.meta.url));
 const sources={
- train:['https://opengameart.org/sites/default/files/kenney_train-kit_0.zip'],
- building:['https://opengameart.org/sites/default/files/kenney_building-kit.zip']
+ house:['https://opengameart.org/sites/default/files/house.zip'],
+ modular_house:['https://opengameart.org/sites/default/files/house_collection.zip'],
+ locomotive:['https://opengameart.org/sites/default/files/locomotive00.zip'],
+ signals:['https://www.openbve-project.net/files/BRSignals.zip']
 };
 const cache=new Map();
 async function getPack(name){if(cache.has(name))return cache.get(name);let last;for(const url of sources[name]||[]){for(let attempt=0;attempt<3;attempt++){try{const c=new AbortController();const t=setTimeout(()=>c.abort(),30000);const r=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 WorldRail/1.1','Accept':'application/zip,*/*'},redirect:'follow',signal:c.signal});clearTimeout(t);if(!r.ok)throw new Error('upstream '+r.status);const b=Buffer.from(await r.arrayBuffer());if(b.length<1000)throw new Error('asset archive unexpectedly small');cache.set(name,b);return b}catch(e){last=e;await new Promise(r=>setTimeout(r,700*(attempt+1)))}}}throw last||new Error('asset source unavailable')}
