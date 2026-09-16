@@ -1,1 +1,9 @@
-import fs from 'fs'; fs.rmSync('dist',{recursive:true,force:true}); fs.mkdirSync('dist',{recursive:true}); fs.copyFileSync('index.html','dist/index.html'); fs.cpSync('public','dist',{recursive:true});
+import fs from 'fs';
+fs.rmSync('dist',{recursive:true,force:true});
+fs.mkdirSync('dist/vendor',{recursive:true});
+fs.copyFileSync('index.html','dist/index.html');
+fs.cpSync('public','dist',{recursive:true});
+fs.copyFileSync('node_modules/leaflet/dist/leaflet.css','dist/vendor/leaflet.css');
+fs.copyFileSync('node_modules/leaflet/dist/leaflet.js','dist/vendor/leaflet.js');
+fs.cpSync('node_modules/leaflet/dist/images','dist/vendor/images',{recursive:true});
+fs.copyFileSync('node_modules/jszip/dist/jszip.min.js','dist/vendor/jszip.min.js');
