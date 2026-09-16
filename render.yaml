@@ -1,6 +1,9 @@
 services:
   - type: web
     name: worldrail-hmmsim-generator
-    runtime: static
-    buildCommand: echo "Static build"
-    staticPublishPath: .
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22
