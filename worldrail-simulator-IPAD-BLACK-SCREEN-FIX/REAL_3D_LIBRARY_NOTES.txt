@@ -1,0 +1,7 @@
+WORLDRAIL DRIVE V2 — REAL 3D LIBRARY
+- 520 genuinely modeled 3D catalog objects in worldrail_520_assets.glb
+- original royalty-free texture set: concrete, brick, wood, asphalt, grass, metal, ballast
+- detailed 50 m track GLB included
+- detailed WR-20 metro GLB included
+- 3D driving renderer now loads the GLB asset library and instantiates scenery from it
+- Babylon.js GLB renderer with mobile hardware scaling

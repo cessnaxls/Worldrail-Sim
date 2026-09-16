@@ -1,0 +1,12 @@
+WORLDRAIL REAL 3D STARTER LIBRARY
+Asset count: 520 distinct modeled catalog objects, plus the detailed WR-20 metro car and 50 m railroad-track GLBs.
+
+All 520 object meshes and the bundled texture maps in textures/ were created specifically for this WorldRail build.
+They are supplied royalty-free for use with this project. No commercial logos or copied proprietary train designs are included.
+
+Texture/material quality target and future source pool:
+Poly Haven publishes its assets under CC0 and explicitly permits commercial use, modification and redistribution.
+https://polyhaven.com/license
+
+The current bundled texture maps are ORIGINAL locally generated maps, so the app does not depend on a live texture API
+and cannot hit a third-party texture-service quota while driving.
