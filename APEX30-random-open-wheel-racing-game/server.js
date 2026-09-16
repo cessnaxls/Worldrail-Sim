@@ -1,1 +1,0 @@
-const e=require('express'),a=e();a.use(e.static(__dirname));a.listen(process.env.PORT||3000,'0.0.0.0')

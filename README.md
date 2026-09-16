@@ -1,10 +1,19 @@
-# APEX 30
-iPad-first fictional open-wheel racing game.
-- Procedurally generated closed circuits, random length/shape/gentle elevation profile
-- 30-car field; random starting grid position
-- DeviceOrientation tilt steering (permission requested from user gesture on iOS)
-- touch gas/brake
-- automatic or manual 6-speed paddle mode; no clutch
-- 5-lap race
-- lightweight Canvas renderer designed to avoid the WebGL boot problems encountered in WorldRail
-Deploy the repository to Render as a Node web service.
+# Indy Random Racer
+
+A standalone iPad/iPhone-friendly procedural open-wheel racing game.
+
+- New random closed circuit every race
+- Random circuit distance, shape, corners and gentle elevation
+- 30-car field (player + 29 AI)
+- Random grid position each race
+- Device tilt steering with iOS permission request
+- Touch gas and brake
+- Automatic paddle-shift mode or manual paddles, no clutch
+- 3/5/10 lap races
+- Fast, technical, or fully random track generation
+- Self-contained renderer: no Babylon/Three.js/CDN dependency
+
+## Render
+Create a new Web Service from the repo. `render.yaml` is included.
+Build: `npm install`
+Start: `npm start`

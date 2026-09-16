@@ -1,1 +1,1 @@
-{"scripts":{"start":"node server.js"},"dependencies":{"express":"^4.21.2"}}
+{"name":"indy-random-racer","version":"1.0.0","scripts":{"start":"node server.js"},"engines":{"node":">=18"}}
