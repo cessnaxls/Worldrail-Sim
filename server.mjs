@@ -1,3 +1,0 @@
-import http from'http';import fs from'fs';import path from'path';import{fileURLToPath}from'url';
-const b=path.join(path.dirname(fileURLToPath(import.meta.url)),'dist'),m={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.wav':'audio/wav'};
-http.createServer((q,r)=>{let u=q.url.split('?')[0];if(u==='/')u='/index.html';let f=path.normalize(path.join(b,decodeURIComponent(u)));if(!f.startsWith(b)){r.writeHead(403);return r.end()}fs.readFile(f,(e,d)=>{if(e){r.writeHead(404);return r.end('Not found')}r.setHeader('Content-Type',m[path.extname(f)]||'application/octet-stream');r.end(d)})}).listen(process.env.PORT||10000,'0.0.0.0');

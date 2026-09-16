@@ -2,8 +2,5 @@ services:
   - type: web
     name: worldrail-sim
     runtime: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install
     startCommand: npm start
-    envVars:
-      - key: NODE_VERSION
-        value: 20
