@@ -1,15 +1,12 @@
 {
-  "name": "worldrail-hmmsim-studio",
+  "name": "worldrail-native-sim",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "start": "node server.mjs"
   },
-  "devDependencies": {
-    "vite": "^5.4.0"
-  },
   "dependencies": {
-    "leaflet": "1.9.4",
-    "jszip": "3.10.1"
+    "@babylonjs/core": "^8.26.0"
   }
 }
