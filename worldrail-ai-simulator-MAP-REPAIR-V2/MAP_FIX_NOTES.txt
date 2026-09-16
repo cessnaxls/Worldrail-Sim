@@ -1,0 +1,6 @@
+WorldRail Map Repair V2
+- Fixes the iPad/Safari symptom where OSM tiles render as detached 256px squares.
+- Leaflet's essential tile/pane positioning CSS is now duplicated in the app stylesheet, so the map remains correctly assembled even if the external Leaflet CSS is delayed, blocked, or cached incorrectly.
+- Disabled Leaflet zoom/fade animation to avoid Safari transform artifacts.
+- Added repeated invalidateSize calls during startup plus visualViewport/orientation handling.
+- No changes to the 520-object catalog or generator controls.
