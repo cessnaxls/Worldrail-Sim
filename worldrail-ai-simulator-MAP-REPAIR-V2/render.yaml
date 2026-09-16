@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: worldrail-sim
-    runtime: node
-    buildCommand: npm install
-    startCommand: npm start
