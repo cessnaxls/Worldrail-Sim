@@ -1,0 +1,15 @@
+ROOT CAUSE FOUND FROM THE 03:07 SCREENSHOT
+
+The prior optimization still called stream() inside mkScene(). stream() synchronously constructed
+9 x 240m sectors before engine.runRenderLoop() was even started. Each sector created/merged hundreds
+of sleeper meshes plus buildings, roads and thin instances. Safari therefore never got frame #1.
+
+FIX:
+- zero streamed sectors are built during scene creation
+- a tiny built-in ground mesh can render immediately without GLB/PNG dependencies
+- render loop starts first
+- after 3 presented frames, streaming begins
+- only ONE 240m sector may be constructed per 180ms interval
+- old sectors still unload normally
+- 520-object library remains in the package
+- 30–40 FPS dynamic-resolution logic remains

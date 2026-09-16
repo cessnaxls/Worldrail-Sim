@@ -1,6 +1,6 @@
 (() => {
 const canvas=document.getElementById('driveCanvas');
-let engine,scene,camera,running=false,speed=0,throttle=0,brake=0,pos=0,last=0,trainRoot=null,camMode=0;
+let engine,scene,camera,running=false,speed=0,throttle=0,brake=0,pos=0,last=0,trainRoot=null,camMode=0,renderFrames=0,lastStream=0;
 let fpsEl=null,scale=1.65,frameAccum=0,frameCount=0,qualityClock=0;
 const $=id=>document.getElementById(id);
 const driveView=$('driveView'), throttleFill=$('throttleFill'), brakeFill=$('brakeFill'),
@@ -20,6 +20,12 @@ function mkScene(){
  new BABYLON.HemisphericLight('sky',new BABYLON.Vector3(0,1,0),scene).intensity=.92;
  let sun=new BABYLON.DirectionalLight('sun',new BABYLON.Vector3(-.35,-1,.25),scene);sun.intensity=.75;
  camera=new BABYLON.UniversalCamera('cab',new BABYLON.Vector3(0,2.75,0),scene);camera.minZ=.15;camera.maxZ=700;camera.fov=.92;
+ // Boot geometry uses no external files: if this appears, WebGL itself is healthy.
+ const bootMat=new BABYLON.StandardMaterial('bootGroundMat',scene);
+ bootMat.diffuseColor=new BABYLON.Color3(.25,.36,.20);
+ const bootGround=BABYLON.MeshBuilder.CreateGround('bootGround',{width:80,height:180},scene);
+ bootGround.position.z=70; bootGround.material=bootMat;
+
  // Reusable low-draw-call materials/textures.
  let gm=mat('grass','#607a45');gm.diffuseTexture=new BABYLON.Texture('assets/real3d/textures/grass.png',scene,false,false,BABYLON.Texture.BILINEAR_SAMPLINGMODE);gm.diffuseTexture.uScale=24;gm.diffuseTexture.vScale=24;
  let ballast=mat('ballast','#77736b');ballast.diffuseTexture=new BABYLON.Texture('assets/real3d/textures/ballast.png',scene,false,false,BABYLON.Texture.BILINEAR_SAMPLINGMODE);ballast.diffuseTexture.uScale=2;ballast.diffuseTexture.vScale=20;
@@ -46,8 +52,21 @@ function mkScene(){
    let mt=[],mc=[];for(let j=0;j<18;j++){let side=j%2?1:-1,x=side*(7+(j%6)*4),zz=z0+5+j*13;let m=BABYLON.Matrix.Translation(x,1.5,zz);mt.push(...m.toArray());let c=BABYLON.Matrix.Translation(x,3.7,zz);mc.push(...c.toArray())}
    tr.thinInstanceSetBuffer('matrix',new Float32Array(mt),16);cr.thinInstanceSetBuffer('matrix',new Float32Array(mc),16);tr.isVisible=true;cr.isVisible=true;
  }
- function stream(){let c=Math.floor(pos/SEG);for(let k=c-BEHIND;k<=c+AHEAD;k++)seg(k);for(const [k,r] of [...segments])if(k<c-BEHIND-1||k>c+AHEAD+1){r.getChildMeshes().forEach(m=>m.dispose());r.dispose();segments.delete(k)}}
- stream();
+ function stream(){
+   let c=Math.floor(pos/SEG);
+   // Dispose out-of-range sectors cheaply.
+   for(const [k,r] of [...segments]){
+     if(k<c-BEHIND-1||k>c+AHEAD+1){
+       r.getChildMeshes().forEach(m=>m.dispose());
+       r.dispose(); segments.delete(k);
+     }
+   }
+   // Build only ONE missing sector per invocation so Safari can keep presenting frames.
+   for(let k=c-BEHIND;k<=c+AHEAD;k++){
+     if(!segments.has(k)){ seg(k); break; }
+   }
+ }
+ // World streaming begins only after the first frame.
  // Train is only loaded for chase/exterior views; cab starts without rendering the whole car.
  BABYLON.SceneLoader.ImportMeshAsync('','assets/real3d/','WorldRail_WR20_Custom_Metro.glb',scene).then(r=>{trainRoot=new BABYLON.TransformNode('train',scene);r.meshes.forEach(m=>{if(m.parent==null)m.parent=trainRoot;m.setEnabled(false)});trainRoot.rotation.y=Math.PI/2});
  fpsEl=document.createElement('div');fpsEl.style.cssText='position:absolute;right:12px;top:58px;background:#0009;color:#bdf7c7;padding:5px 8px;border-radius:6px;font:12px monospace;z-index:20';fpsEl.textContent='FPS --';driveView.appendChild(fpsEl);
@@ -62,7 +81,10 @@ function mkScene(){
  doorsBtn.onclick=()=>{if(speed<.3)new Audio('audio/door_chime.wav').play().catch(()=>{})};
  camBtn.onclick=()=>{camMode=(camMode+1)%2;setTrainVisible(camMode===1);camBtn.textContent=camMode?'CHASE':'CAB'};
  function tick(){let now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;if(!running)return;
-   let a=throttle*.85-brake*1.5-.012*speed;speed=Math.max(0,Math.min(30,speed+a*dt));pos+=speed*dt;stream();
+   let a=throttle*.85-brake*1.5-.012*speed;
+   speed=Math.max(0,Math.min(30,speed+a*dt));pos+=speed*dt;
+   // Give WebGL a couple of empty/light frames first, then progressively stream.
+   if(renderFrames>2 && now-lastStream>180){stream();lastStream=now;}
    if(camMode===0){camera.position.set(0,2.72,pos+1);camera.setTarget(new BABYLON.Vector3(0,2.0,pos+85))}
    else{if(trainRoot)trainRoot.position.set(0,0,pos+8);camera.position.set(7,5.2,pos-15);camera.setTarget(new BABYLON.Vector3(0,1.8,pos+8))}
    H.speed.textContent=Math.round(speed*3.6);H.limit.textContent=pos%900>720?40:80;H.signal.textContent=pos%1250>1080?'YELLOW':'GREEN';H.next.textContent='Next station '+Math.max(0,((900-pos%900)/1000)).toFixed(1)+' km';H.power.textContent='P'+Math.round(throttle*4)+' / B'+Math.round(brake*5);
@@ -83,7 +105,9 @@ let firstFrameSeen=false;
 function armFirstFrameWatch(){
   firstFrameSeen=false;
   scene.onAfterRenderObservable.addOnce(()=>{firstFrameSeen=true;});
-  setTimeout(()=>{if(running && !firstFrameSeen)showDriveError(new Error('WebGL initialized but no frame completed. Scene construction is stalled.'));},5000);
+  setTimeout(()=>{if(running && !firstFrameSeen)
+    showDriveError(new Error('No first WebGL frame completed after 8 seconds (frames attempted: '+renderFrames+').'));
+  },8000);
 }
 window.WorldRailDrive={
  start(){
@@ -91,7 +115,7 @@ window.WorldRailDrive={
    try{
      if(!scene)mkScene();
      armFirstFrameWatch();last=performance.now();
-     if(!loopStarted){engine.runRenderLoop(()=>{if(scene){tick();scene.render()}});loopStarted=true}
+     if(!loopStarted){engine.runRenderLoop(()=>{if(scene){tick();scene.render();renderFrames++}});loopStarted=true}
      setTimeout(()=>engine.resize(),60);
    }catch(err){running=false;showDriveError(err)}
  },

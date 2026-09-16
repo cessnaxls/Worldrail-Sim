@@ -1,4 +1,0 @@
-Fix based on iPad screenshot: Drive UI initialized, but FPS remained '--' and the first-frame boot badge never cleared.
-This build moves the boot completion hook onto the actual first Babylon render and progressively builds only one missing
-streaming sector per interval instead of synchronously constructing the whole initial corridor before the first frame.
-A five-second first-frame watchdog reports a concrete stall rather than leaving the boot badge indefinitely.
