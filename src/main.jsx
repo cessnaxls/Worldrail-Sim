@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import * as THREE from 'three';
-import {Map,TrainFront,Route,Settings,Play,Plus,Trash2,Camera,ChevronLeft,ChevronRight,Power,Gauge,Radio,Tunnel,Building2,Save,RotateCcw,Clock,Users,Weight,Navigation,PanelTop} from 'lucide-react';
+import {Map,TrainFront,Route,Settings,Play,Plus,Trash2,Camera,ChevronLeft,ChevronRight,Power,Gauge,Radio,Building2,Save,RotateCcw,Clock,Users,Weight,Navigation,PanelTop} from 'lucide-react';
 import './style.css';
 
 const DEFAULT_ROUTE=[[-86.158,39.768],[-86.151,39.774],[-86.145,39.782],[-86.138,39.791],[-86.130,39.799],[-86.123,39.808]];
